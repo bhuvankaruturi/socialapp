@@ -24,9 +24,11 @@ let firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
+const db = admin.firestore();
+
 // get posts
 app.get('/posts', (request, response) => {
-    admin.firestore()
+    db
     .collection("posts")
     .orderBy('createdAt', 'desc')
     .get().then((querySnapshot) => {
@@ -48,11 +50,11 @@ app.post('/post', (request, response) => {
     }
     let newPost = {
         body:  request.body.body,
-        userHandle: request.body.userHandle,
+        username: request.body.username,
         createdAt: new Date().toISOString()
     };
 
-    admin.firestore()
+    db
     .collection("posts")
     .add(newPost)
     .then((doc) => {
@@ -64,30 +66,85 @@ app.post('/post', (request, response) => {
     });
 });
 
+const isValidEmail = (email) => {
+    let pattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return pattern.test(email.toLowerCase());
+}
+
+const isEmpty = (s) => {
+    return s.trim() == '';
+}
+
 // user signup
 app.post('/signup', (request, response) => {
     let newUser = {
         email: request.body.email,
         password: request.body.password,
         confirmPassword: request.body.confirmPassword,
-        userHandle: request.body.userHandle
+        username: request.body.username
     };
 
-    //TODO : user details validation
+    // user details validation
 
-    firebase
-    .auth()
-    .createUserWithEmailAndPassword(newUser.email, newUser.password)
+    let errors = {};
+
+    if (isEmpty(newUser.email)) {
+        errors.email = 'Must not be empty';
+    } else if (isValidEmail(newUser.email)) {
+        errors.email = 'Must be a valid email address';
+    }
+
+    if (isEmpty(newUser.password)) {
+        errors.password = 'Must not be empty';
+    } else if (newUser.password !== newUser.confirmPassword) {
+        errors.confirmPassword = 'Passwords must match';
+    }
+
+    if (isEmpty(newUser.username)) {
+        errors.username = 'Must not be empty'
+    }
+
+    let userId, token;
+    db
+    .doc(`/users/${newUser.username}`)
+    .get()
+    .then(documentSnapshot => {
+        if (documentSnapshot.exists)  {
+            return response
+                        .status(400)
+                        .json({username: `username ${newUser.username} already exists`});
+        } else {
+            return firebase
+                        .auth()
+                        .createUserWithEmailAndPassword(newUser.email, newUser.password);
+        }
+    })
     .then((data) => {
-        return response
-                .status(201)
-                .json({message: `user {data.user.uid} has been successfully created`});
+        userId = data.user.uid;
+        return data.user.getIdToken();
+    })
+    .then((idToken) => {
+        token = idToken;
+        let userCredentials = {
+            email: newUser.email,
+            createdAt: new Date().toISOString(),
+            userId
+        }
+        return db
+                .doc(`/users/${newUser.username}`)
+                .set(userCredentials);
+    })
+    .then(() => {
+        return response.status(201).json({token});
     })
     .catch((error) => {
-        return response
-                .status(500)
-                .json({error: error.code});
-    });
+        if (error.code === 'auth/email-already-in-use') {
+            return response.status(400).json({email: 'email already in use'});
+        } else {
+            console.error(error);
+            return response.status(500).json({error: error.code});
+        }
+    })
 });
 
 // api endpoint for express app

@@ -67,7 +67,7 @@ app.post('/post', (request, response) => {
 });
 
 const isValidEmail = (email) => {
-    let pattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const pattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return pattern.test(email.toLowerCase());
 }
 
@@ -85,12 +85,11 @@ app.post('/signup', (request, response) => {
     };
 
     // user details validation
-
     let errors = {};
 
     if (isEmpty(newUser.email)) {
         errors.email = 'Must not be empty';
-    } else if (isValidEmail(newUser.email)) {
+    } else if (!isValidEmail(newUser.email)) {
         errors.email = 'Must be a valid email address';
     }
 
@@ -104,46 +103,51 @@ app.post('/signup', (request, response) => {
         errors.username = 'Must not be empty'
     }
 
+    if (Object.keys(errors).length > 0) {
+        return response.status(400).json(errors);
+    } 
+
     let userId, token;
     db
     .doc(`/users/${newUser.username}`)
     .get()
-    .then(documentSnapshot => {
+    .then((documentSnapshot) => {
         if (documentSnapshot.exists)  {
-            return response
-                        .status(400)
-                        .json({username: `username ${newUser.username} already exists`});
+            return response.status(400).json({username: "username already exists"});
         } else {
-            return firebase
-                        .auth()
-                        .createUserWithEmailAndPassword(newUser.email, newUser.password);
+            return firebase.auth()
+                    .createUserWithEmailAndPassword(newUser.email, newUser.password)
+                    .then((data) => {
+                        userId = data.user.uid;
+                        return data.user.getIdToken();
+                    })
+                    .then((idToken) => {
+                        token = idToken;
+                        let userCredentials = {
+                            email: newUser.email,
+                            createdAt: new Date().toISOString(),
+                            userId
+                        }
+                        return db
+                                .doc(`/users/${newUser.username}`)
+                                .set(userCredentials);
+                    })
+                    .then(() => {
+                        return response.status(201).json({token});
+                    })
+                    .catch((error) => {
+                        if (error.code === 'auth/email-already-in-use') {
+                            return response.status(400).json({email: 'email already in use'});
+                        } else {
+                            console.error(error);
+                            return response.status(500).json({error: error.code});
+                        }
+                    })
         }
-    })
-    .then((data) => {
-        userId = data.user.uid;
-        return data.user.getIdToken();
-    })
-    .then((idToken) => {
-        token = idToken;
-        let userCredentials = {
-            email: newUser.email,
-            createdAt: new Date().toISOString(),
-            userId
-        }
-        return db
-                .doc(`/users/${newUser.username}`)
-                .set(userCredentials);
-    })
-    .then(() => {
-        return response.status(201).json({token});
-    })
+    })    
     .catch((error) => {
-        if (error.code === 'auth/email-already-in-use') {
-            return response.status(400).json({email: 'email already in use'});
-        } else {
-            console.error(error);
-            return response.status(500).json({error: error.code});
-        }
+        console.error(error);
+        return response.status(500).json({error: error.code});
     })
 });
 

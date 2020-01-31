@@ -17,7 +17,7 @@ exports.getAllPosts = (request, response) => {
 };
 
 exports.createPost = (request, response) => {
-    if (isEmpty(request.body.body)) {
+    if (request.body.body.trim === "") {
         response.status(400).json({body: "Body must not be empty"});
     }
 

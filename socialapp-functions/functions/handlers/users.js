@@ -1,4 +1,4 @@
-const {db} = require('../util/admin');
+const {admin, db} = require('../util/admin');
 const config = require('../util/config');
 const {validateSignup, validateLogin} = require('../util/validateData');
 
@@ -50,7 +50,6 @@ exports.signup = (request, response) => {
                         if (error.code === 'auth/email-already-in-use') {
                             return response.status(400).json({email: 'email already in use'});
                         } else {
-                            console.error(error);
                             return response.status(500).json({error: error.code});
                         }
                     })
@@ -83,11 +82,52 @@ exports.login = (request, response) => {
         return response.status(200).json({token});
     })
     .catch(error => {
-        console.error(error);
         if (error.code === 'auth/wrong-password'
             || error.code === 'auth/user-not-found') {
             return response.status(403).json({general: "Wrong credentials, please try again"});
         }
         return response.status(500).json({error:  error.code});
     });
+};
+
+exports.uploadImage = (request, response) => {
+    const path = require('path'),
+            os = require('os'),
+            fs = require('fs');
+
+    const BusBoy = require('busboy');
+    var busboy = new BusBoy({headers: request.headers});
+
+    let fileToBeUploaded = {};
+
+    busboy.on('file', (fieldname, file, filename, enconding, mimetype) => {
+        let filenameArr = filename.split('.');
+        let fileExtension = filenameArr[filenameArr.length-1];
+        let filepath = `${Math.round(Math.random() * 10000000)}-${filenameArr[0]}.${fileExtension}`;
+        filepath = path.join(os.tmpdir(), filepath);
+        fileToBeUploaded = { filepath, mimetype };
+        file.pipe(fs.createWriteStream(filepath));
+    });
+
+    busboy.on('finish', () => {
+        admin.storage().bucket().upload(fileToBeUploaded.filepath, {
+            resumable: false,
+            metadata: {
+                metadata: {
+                    contentType: fileToBeUploaded.mimetype
+                }
+            }
+        })
+        .then((data) => {
+            return db.doc(`/users/${request.user.username}`).update({imageUrl: data[0].metadata.mediaLink});
+        })
+        .then(() => {
+            return response.status(201).json({message:"Image uploaded successfully"});
+        })
+        .catch((error) => {
+            console.error(error);
+            return response.status(500).json({error: error.code});
+        });
+    });
+    busboy.end(request.rawBody);
 };

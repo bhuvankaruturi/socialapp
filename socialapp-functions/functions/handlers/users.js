@@ -1,17 +1,14 @@
 const {admin, db} = require('../util/admin');
-const config = require('../util/config');
 const {validateSignup, validateLogin} = require('../util/validateData');
-
-const firebase = require('firebase');
-
-firebase.initializeApp(config);
+const firebase = require('../util/firebaseApp');
 
 exports.signup = (request, response) => {
     let newUser = {
         email: request.body.email,
         password: request.body.password,
         confirmPassword: request.body.confirmPassword,
-        username: request.body.username
+        username: request.body.username,
+        image: 'no-img.webp'
     };
 
     let result = validateSignup(newUser);
@@ -37,7 +34,8 @@ exports.signup = (request, response) => {
                         let userCredentials = {
                             email: newUser.email,
                             createdAt: new Date().toISOString(),
-                            userId
+                            userId,
+                            image: newUser.image
                         }
                         return db
                                 .doc(`/users/${newUser.username}`)
@@ -119,7 +117,7 @@ exports.uploadImage = (request, response) => {
             }
         })
         .then((data) => {
-            return db.doc(`/users/${request.user.username}`).update({imageUrl: data[0].metadata.mediaLink});
+            return db.doc(`/users/${request.user.username}`).update({image: data[0].metadata.name});
         })
         .then(() => {
             return response.status(201).json({message:"Image uploaded successfully"});

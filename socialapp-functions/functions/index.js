@@ -1,7 +1,6 @@
 const functions = require('firebase-functions');
-const {admin, db} = require('./util/admin');
-const {getAllPosts, createPost} = require('./handlers/posts');
-const {signup, login} = require('./handlers/users');
+const {getAllPosts, createPost, getImage} = require('./handlers/posts');
+const {signup, login, uploadImage} = require('./handlers/users');
 const firebaseAuth = require('./util/firebaseAuth');
 const express = require('express');
 const app = express();
@@ -17,6 +16,12 @@ app.post('/signup', signup);
 
 // login route
 app.post("/login", login);
+
+// user image upload route
+app.post("/user/image", firebaseAuth, uploadImage)
+
+// user image test route
+app.get("/user/getImage", firebaseAuth, getImage)
 
 // api endpoint for express app
 exports.api = functions.https.onRequest(app);

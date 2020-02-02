@@ -1,17 +1,15 @@
-const {db} = require('../util/admin');
-const config = require('../util/config');
+const {admin, db} = require('../util/admin');
 const {validateSignup, validateLogin} = require('../util/validateData');
-
-const firebase = require('firebase');
-
-firebase.initializeApp(config);
+const config = require('../util/config');
+const firebase = require('../util/firebaseApp');
 
 exports.signup = (request, response) => {
     let newUser = {
         email: request.body.email,
         password: request.body.password,
         confirmPassword: request.body.confirmPassword,
-        username: request.body.username
+        username: request.body.username,
+        imageUrl: `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/$no-img.webp?alt=media`
     };
 
     let result = validateSignup(newUser);
@@ -37,7 +35,8 @@ exports.signup = (request, response) => {
                         let userCredentials = {
                             email: newUser.email,
                             createdAt: new Date().toISOString(),
-                            userId
+                            userId,
+                            imageUrl: newUser.imageUrl
                         }
                         return db
                                 .doc(`/users/${newUser.username}`)
@@ -50,7 +49,6 @@ exports.signup = (request, response) => {
                         if (error.code === 'auth/email-already-in-use') {
                             return response.status(400).json({email: 'email already in use'});
                         } else {
-                            console.error(error);
                             return response.status(500).json({error: error.code});
                         }
                     })
@@ -83,11 +81,58 @@ exports.login = (request, response) => {
         return response.status(200).json({token});
     })
     .catch(error => {
-        console.error(error);
         if (error.code === 'auth/wrong-password'
             || error.code === 'auth/user-not-found') {
             return response.status(403).json({general: "Wrong credentials, please try again"});
         }
         return response.status(500).json({error:  error.code});
     });
+};
+
+exports.uploadImage = (request, response) => {
+    const path = require('path'),
+            os = require('os'),
+            fs = require('fs');
+
+    const BusBoy = require('busboy');
+    var busboy = new BusBoy({headers: request.headers});
+
+    let fileToBeUploaded = {};
+
+    busboy.on('file', (fieldname, file, filename, enconding, mimetype) => {
+        let regex = /^image.*$/;
+        if (regex.test(mimetype)) {
+            let filenameArr = filename.split('.');
+            let fileExtension = filenameArr[filenameArr.length-1];
+            let filepath = `${Math.round(Math.random() * 10000000)}-${filenameArr[0]}.${fileExtension}`;
+            filepath = path.join(os.tmpdir(), filepath);
+            fileToBeUploaded = { filepath, mimetype };
+            file.pipe(fs.createWriteStream(filepath));
+        } else {
+            return response.status(400).json({error: 'Invalid file type. Profile picture must be a image file.'})
+        }
+    });
+
+    busboy.on('finish', () => {
+        admin.storage().bucket().upload(fileToBeUploaded.filepath, {
+            resumable: false,
+            metadata: {
+                metadata: {
+                    contentType: fileToBeUploaded.mimetype
+                }
+            }
+        })
+        .then((data) => {
+            let imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${data[0].metadata.name}?alt=media`;
+            return db.doc(`/users/${request.user.username}`).update({imageUrl});
+        })
+        .then(() => {
+            return response.status(201).json({message:"Image uploaded successfully"});
+        })
+        .catch((error) => {
+            console.error(error);
+            return response.status(500).json({error: error.code});
+        });
+    });
+    busboy.end(request.rawBody);
 };

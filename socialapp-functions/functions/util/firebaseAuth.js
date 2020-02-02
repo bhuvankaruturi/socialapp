@@ -25,12 +25,12 @@ module.exports = (request, response, next) => {
             request.user.username = querySnapshot.docs[0].id;
             return next();
         } else {
-            console.error('Error while verifying user ', error);
+            console.error('Error while verifying user', error.code);
             return response.status(403).json({error: error.code});
         }
     })
     .catch(error => {
-        console.error('Error while verifying user ', error);
+        console.error('Error while verifying user', error.code);
         return response.status(403).json({error: error.code});
     });
 };

@@ -1,5 +1,6 @@
 const {admin, db} = require('../util/admin');
 const {validateSignup, validateLogin} = require('../util/validateData');
+const config = require('../util/config');
 const firebase = require('../util/firebaseApp');
 
 exports.signup = (request, response) => {
@@ -8,7 +9,7 @@ exports.signup = (request, response) => {
         password: request.body.password,
         confirmPassword: request.body.confirmPassword,
         username: request.body.username,
-        image: 'no-img.webp'
+        imageUrl: `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/$no-img.webp?alt=media`
     };
 
     let result = validateSignup(newUser);
@@ -35,7 +36,7 @@ exports.signup = (request, response) => {
                             email: newUser.email,
                             createdAt: new Date().toISOString(),
                             userId,
-                            image: newUser.image
+                            imageUrl: newUser.imageUrl
                         }
                         return db
                                 .doc(`/users/${newUser.username}`)
@@ -99,12 +100,17 @@ exports.uploadImage = (request, response) => {
     let fileToBeUploaded = {};
 
     busboy.on('file', (fieldname, file, filename, enconding, mimetype) => {
-        let filenameArr = filename.split('.');
-        let fileExtension = filenameArr[filenameArr.length-1];
-        let filepath = `${Math.round(Math.random() * 10000000)}-${filenameArr[0]}.${fileExtension}`;
-        filepath = path.join(os.tmpdir(), filepath);
-        fileToBeUploaded = { filepath, mimetype };
-        file.pipe(fs.createWriteStream(filepath));
+        let regex = /^image.*$/;
+        if (regex.test(mimetype)) {
+            let filenameArr = filename.split('.');
+            let fileExtension = filenameArr[filenameArr.length-1];
+            let filepath = `${Math.round(Math.random() * 10000000)}-${filenameArr[0]}.${fileExtension}`;
+            filepath = path.join(os.tmpdir(), filepath);
+            fileToBeUploaded = { filepath, mimetype };
+            file.pipe(fs.createWriteStream(filepath));
+        } else {
+            return response.status(400).json({error: 'Invalid file type. Profile picture must be a image file.'})
+        }
     });
 
     busboy.on('finish', () => {
@@ -117,7 +123,8 @@ exports.uploadImage = (request, response) => {
             }
         })
         .then((data) => {
-            return db.doc(`/users/${request.user.username}`).update({image: data[0].metadata.name});
+            let imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${data[0].metadata.name}?alt=media`;
+            return db.doc(`/users/${request.user.username}`).update({imageUrl});
         })
         .then(() => {
             return response.status(201).json({message:"Image uploaded successfully"});

@@ -38,20 +38,3 @@ exports.createPost = (request, response) => {
         console.error(error);
     });
 };
-
-//TODO: temporary route - to be deleted
-exports.getImage = (request, response) => {
-    const file = admin.storage().bucket().file(request.body.filename);
-    let options = {
-        action: 'read',
-        expires: '03-17-2025'
-    }
-    file
-    .getSignedUrl(options)
-    .then(url => {
-        return response.status(200).json({url});
-    })
-    .catch(error => {
-        return response.status(500).json({error: error.code});
-    });
-}

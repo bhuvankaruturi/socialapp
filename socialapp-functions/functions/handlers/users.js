@@ -1,5 +1,5 @@
 const {admin, db} = require('../util/admin');
-const {validateSignup, validateLogin} = require('../util/validateData');
+const {validateSignup, validateLogin, reduceUserDetails} = require('../util/validateData');
 const config = require('../util/config');
 const firebase = require('../util/firebaseApp');
 
@@ -88,6 +88,52 @@ exports.login = (request, response) => {
         return response.status(500).json({error:  error.code});
     });
 };
+
+// function to add user details
+exports.addUserDetails = (request, response) => {
+    let userDetails = reduceUserDetails(request.body);
+    if (Object.keys(userDetails).length > 0) {
+        db
+        .doc(`/users/${request.user.username}`)
+        .update(userDetails)
+        .then(() => {
+            return response.status(200).json({message: 'user details updated successfully'});
+        })
+        .catch(error => {
+            console.error(error);
+            return response.status(500).json({error: error.code});
+        });
+    } else {
+        return response.status(400).json({error: 'Bad request. Invalid user details'});
+    }
+}
+
+// get authenticated user details
+exports.getAuthenticatedUserData = (request, response) => {
+    let userData = {};
+    db
+    .doc(`/users/${request.user.username}`)
+    .get()
+    .then(doc => {
+        if (doc.exists) {
+            userData.credentials = doc.data();
+            return db.collection('likes').where('username','==', request.user.username).get();
+        } else {
+            return response.status(500).json({error: 'user not found'});
+        }
+    })
+    .then(data => {
+        userData.likes = [];
+        data.forEach(doc => {
+            userData.likes.push(doc.data());
+        });
+        return response.status(200).json(userData);
+    })
+    .catch(error => {
+        console.error(error);
+        return response.status(500).json({error: error.code});
+    });
+}
 
 exports.uploadImage = (request, response) => {
     const path = require('path'),

@@ -57,7 +57,9 @@ exports.getPost = (request, response) => {
     .then(data => {
         postData.comments = [];
         data.forEach(doc => {
-            postData.comments.push(doc.data());
+            let comment = doc.data();
+            comment.commentId = doc.id;
+            postData.comments.push(comment);
         })
         return response.status(200).json(postData);
     })

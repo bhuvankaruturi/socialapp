@@ -162,7 +162,6 @@ exports.uploadImage = (request, response) => {
 
     busboy.on('finish', () => {
         let currentFilename = "";
-        let bucket;
         db.doc(`/users/${request.user.username}`).get()
         .then(doc => {
             if (doc.exists) currentFilename = doc.data().image;
@@ -171,7 +170,7 @@ exports.uploadImage = (request, response) => {
             console.error(error);
         });
 
-        admin.storage().bucket().upload(fileToBeUploaded.filepath, {
+        return admin.storage().bucket().upload(fileToBeUploaded.filepath, {
             resumable: false,
             metadata: {
                 metadata: {

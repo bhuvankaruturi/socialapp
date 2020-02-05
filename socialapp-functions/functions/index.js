@@ -10,7 +10,8 @@ const {signup,
         uploadImage, 
         addUserDetails, 
         getAuthenticatedUserData} = require('./handlers/users');
-const {createComment} = require('./handlers/comments');
+const {createComment, deleteComment} = require('./handlers/comments');
+const {db} = require('./util/admin');
 const firebaseAuth = require('./util/firebaseAuth');
 const express = require('express');
 const app = express();
@@ -25,6 +26,8 @@ app.get('/post/:postId', getPost);
 app.delete('/post/:postId', firebaseAuth, deletePost);
 // create a comment on a post
 app.post('/post/:postId/comment', firebaseAuth, createComment);
+// delete a comment on a post
+app.delete('/post/:postId/comment/:commentId', firebaseAuth, deleteComment);
 // like a post
 app.post('/post/:postId/like', firebaseAuth, likePost);
 // unlike a post
@@ -45,6 +48,7 @@ app.get("/user", firebaseAuth, getAuthenticatedUserData);
 exports.api = functions.https.onRequest(app);
 
 // firestore database trigger to send notifications
+// Notification when someone likes a post
 exports.createNotificationOnLike = functions
     .firestore
     .document('likes/{id}')
@@ -71,6 +75,24 @@ exports.createNotificationOnLike = functions
         });
     });
 
+// Delete the notification when someone unlikes a post
+exports.deleteNotificationOnUnlike = functions
+    .firestore
+    .document('/likes/{id}')
+    .onDelete((snapshot) => {
+        db
+        .doc(`/notifications/${snapshot.id}`)
+        .delete()
+        .then(() => {
+            return;
+        })
+        .catch(error => {
+            console.error(error);
+            return;
+        });
+    });
+
+// Notification when someone comments on a post
 exports.createNotificationOnComment = functions
     .firestore
     .document('comments/{id}')
@@ -80,19 +102,32 @@ exports.createNotificationOnComment = functions
         .get()
         .then((doc) => {
             if (doc.exists) {
-                if (doc.exits) {
-                    return db.doc(`/notifications/${snapshot.id}`).set({
-                        createdAt: new Date().toISOString(),
-                        recipient: doc.data().username,
-                        sender: snapshot.data().username,
-                        type: 'comment',
-                        read: false,
-                        postId: doc.id
-                    });
-                }
+                return db.doc(`/notifications/${snapshot.id}`).set({
+                    createdAt: new Date().toISOString(),
+                    recipient: doc.data().username,
+                    sender: snapshot.data().username,
+                    type: 'comment',
+                    read: false,
+                    postId: doc.id
+                });
             }
         })
         .then(() =>  {return;})
+        .catch(error => {
+            console.error(error);
+            return;
+        });
+    });
+
+// Notification when someone deletes a comment
+exports.deleteNotificationOnUncomment = functions
+    .firestore
+    .document('comments/{id}')
+    .onDelete(snapshot => {
+        db
+        .doc(`/notifications/${snapshot.id}`)
+        .delete()
+        .then(() => {return;})
         .catch(error => {
             console.error(error);
             return;

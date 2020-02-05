@@ -53,3 +53,38 @@ exports.createComment = (request, response) => {
         return response.status(500).json({error: error.code});
     })
 };
+
+exports.deleteComment = (request, response) => {
+    db
+    .doc(`/comments/${request.params.commentId}`)
+    .get()
+    .then(doc => {
+        if (doc.exists) {
+            return doc.ref.delete()
+                .then(() => {
+                    return db.doc(`/posts/${request.params.postId}`).get();
+                })
+                .then(doc => {
+                    if (doc.exists) {
+                        let commentsCount = doc.data().commentsCount - 1;
+                        return doc.ref.update({commentsCount})
+                                .then(() => {
+                                    return response.status(200).json({message: "comment deleted successfully"});
+                                })
+                                .catch(error => {
+                                    console.error(error);
+                                    return response.status(500).json({error: error.code});
+                                })
+                    } else return response.status(404).json({error: "Post not found"});
+                })
+                .catch(error => {
+                    console.error(error);
+                    return response.status(500).json({error: error.code});
+                });
+        } else return response.status(404).json({error: "Comment not found"});
+    })
+    .catch(error => {
+        console.error(error);
+        return response.status(500).json({error: error.code});
+    });
+}

@@ -23,6 +23,8 @@ module.exports = (request, response, next) => {
     .then(querySnapshot => {
         if (querySnapshot.docs.length > 0){
             request.user.username = querySnapshot.docs[0].id;
+            request.user.imageUrl = querySnapshot.docs[0].data().imageUrl;
+            if (!request.user.imageUrl) request.user.imageUrl = "";
             return next();
         } else {
             console.error('Error while verifying user', error.code);

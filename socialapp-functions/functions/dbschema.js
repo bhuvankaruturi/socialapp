@@ -16,15 +16,17 @@ const db = {
     posts: [
         {
             username: 'user',
+            userImage: 'https://www.image.com',
             body: 'post content',
             createdAt: '2020-01-28T01:10:01.056Z',
             likes: 2,
-            commentCount: 2
+            commentsCount: 2
         }
     ],
     comments: [
         {
             username: 'user',
+            userImage: 'https://www.userImage.com',
             postId: 'asyAhakaAyqu157',
             body: 'This is a comment',
             createdAt: '2020-01-28T01:10:01.056Z'
@@ -34,6 +36,16 @@ const db = {
         {
             username: 'user',
             postId: 'asdauuANbvns82r'
+        }
+    ],
+    notifications: [
+        {
+            createAt: '2020-01-28T01:10:01.056Z',
+            recipient: 'user 1',
+            sender: 'user 3',
+            type: 'like | comment',
+            read: 'true | false',
+            postId: 'asyAhakaAyqu157'
         }
     ]
 };

@@ -2,6 +2,7 @@ const {admin, db} = require('../util/admin');
 const {validateSignup, validateLogin, reduceUserDetails} = require('../util/validateData');
 const config = require('../util/config');
 const firebase = require('../util/firebaseApp');
+const NO_IMAGE_FILE = 'no-img.webp';
 
 exports.signup = (request, response) => {
     let newUser = {
@@ -9,7 +10,7 @@ exports.signup = (request, response) => {
         password: request.body.password,
         confirmPassword: request.body.confirmPassword,
         username: request.body.username,
-        imageUrl: `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/$no-img.webp?alt=media`
+        imageUrl: `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${NO_IMAGE_FILE}?alt=media`
     };
 
     let result = validateSignup(newUser);
@@ -160,6 +161,16 @@ exports.uploadImage = (request, response) => {
     });
 
     busboy.on('finish', () => {
+        let currentFilename = "";
+        let bucket;
+        db.doc(`/users/${request.user.username}`).get()
+        .then(doc => {
+            if (doc.exists) currentFilename = doc.data().image;
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
         admin.storage().bucket().upload(fileToBeUploaded.filepath, {
             resumable: false,
             metadata: {
@@ -170,10 +181,25 @@ exports.uploadImage = (request, response) => {
         })
         .then((data) => {
             let imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${data[0].metadata.name}?alt=media`;
-            return db.doc(`/users/${request.user.username}`).update({imageUrl});
+            return db.doc(`/users/${request.user.username}`).update({imageUrl, image: data[0].metadata.name});
         })
         .then(() => {
-            return response.status(201).json({message:"Image uploaded successfully"});
+            if (currentFilename !== "" && currentFilename !== NO_IMAGE_FILE) {
+                return admin.storage().bucket()
+                            .file(currentFilename)
+                            .delete()
+                            .then(() => {
+                                console.log(currentFilename + " image deleted");
+                                return response.status(201).json({message:"Image uploaded successfully"});
+                            })
+                            .catch(error => {
+                                console.error(error);
+                                return response.status(500).json({error: error.code});
+                            });
+            }
+            else {
+                return response.status(201).json({message:"Image uploaded successfully"});
+            } 
         })
         .catch((error) => {
             console.error(error);

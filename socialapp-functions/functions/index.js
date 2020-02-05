@@ -175,7 +175,7 @@ exports.updateOnUserImageChange = functions
                 .catch(error => {
                     console.error(error);
                     return;
-                })
+                });
         }
         return;
     });
@@ -202,11 +202,20 @@ exports.onPostDelete = functions
             data.forEach(doc => {
                 batch.delete(doc.ref);
             });
+            return db
+            .collection('notifications')
+            .where('postId', '==', context.params.postId)
+            .get();
+        })
+        .then(data => {
+            data.forEach(doc => {
+                batch.delete(doc.ref);
+            });
             return batch.commit();
         })
         .then(() => {return;})
         .catch(error => {
             console.error(error);
             return;
-        })
-    })
+        });
+    });

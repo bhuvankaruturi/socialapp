@@ -49,7 +49,11 @@ exports.signup = (request, response) => {
                     .catch((error) => {
                         if (error.code === 'auth/email-already-in-use') {
                             return response.status(400).json({email: 'email already in use'});
-                        } else {
+                        } 
+                        else if (error.code === 'auth/weak-password') {
+                            return response.status(400).json({password: 'password not strong enough'});
+                        }
+                        else {
                             return response.status(500).json({error: error.code});
                         }
                     })
@@ -83,7 +87,8 @@ exports.login = (request, response) => {
     })
     .catch(error => {
         if (error.code === 'auth/wrong-password'
-            || error.code === 'auth/user-not-found') {
+            || error.code === 'auth/user-not-found'
+            || error.code === 'auth/invalid-email') {
             return response.status(403).json({general: "Wrong credentials, please try again"});
         }
         return response.status(500).json({error:  error.code});
@@ -118,23 +123,78 @@ exports.getAuthenticatedUserData = (request, response) => {
     .then(doc => {
         if (doc.exists) {
             userData.credentials = doc.data();
-            return db.collection('likes').where('username','==', request.user.username).get();
+            return db
+                .collection('likes')
+                .where('username','==', request.user.username)
+                .get()
+                .then(data => {
+                    userData.likes = [];
+                    data.forEach(doc => {
+                        userData.likes.push(doc.data());
+                    });
+                    return db
+                            .collection('notifications')
+                            .where('recipient', '==', request.user.username)
+                            .orderBy('createdAt', 'desc')
+                            .limit(15)
+                            .get();
+                })
+                .then(data => {
+                    userData.notifications = [];
+                    data.forEach(doc => {
+                        let notification = doc.data();
+                        notification.id = doc.id;
+                        userData.notifications.push(notification);
+                    })
+                    return response.status(200).json(userData);
+                })
+                .catch(error => {
+                    console.error(error);
+                    return response.json(500).json({error: error.code});
+                });
         } else {
             return response.status(500).json({error: 'user not found'});
         }
-    })
-    .then(data => {
-        userData.likes = [];
-        data.forEach(doc => {
-            userData.likes.push(doc.data());
-        });
-        return response.status(200).json(userData);
     })
     .catch(error => {
         console.error(error);
         return response.status(500).json({error: error.code});
     });
 }
+
+// get a particular user profiler
+exports.getUserProfile = (request, response) => {
+    let userData = {};
+    db.doc(`/users/${request.params.username}`).get()
+    .then(doc => {
+        if (doc.exists) {
+            userData = doc.data();
+            return db
+            .collection('posts')
+            .where('username', '==', request.params.username)
+            .orderBy('createdAt', 'desc')
+            .get()
+            .then(data => {
+                userData.posts = [];
+                data.forEach(doc => {
+                    let post = doc.data();
+                    post.id = doc.id;
+                    userData.posts.push(post);
+                })
+                return response.status(200).json(userData);
+            })
+            .catch(error => {
+                console.error(error);
+                return response.status(500).json({error: error.code});
+            });
+        }
+        else return response.json(404).json({error: "User not found"});
+    })
+    .catch(error => {
+        console.error(error);
+        return response.status(500).json({error: error.code});
+    });
+};
 
 exports.uploadImage = (request, response) => {
     const path = require('path'),
@@ -207,3 +267,20 @@ exports.uploadImage = (request, response) => {
     });
     busboy.end(request.rawBody);
 };
+
+exports.markNotificationsAsRead = (request, response) => {
+    let batch = db.batch();
+    request.body.notifications.forEach(id => {
+        let notification = db.doc(`/notifications/${id}`);
+        batch.update(notification, {read: true});
+    });
+    batch
+    .commit()
+    .then(() => {
+        return response.json({message: "notifications marked as read"});
+    })
+    .catch(error => {
+        console.error(error);
+        return response.json({error: error.code});
+    });
+}

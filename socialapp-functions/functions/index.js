@@ -9,7 +9,9 @@ const {signup,
         login, 
         uploadImage, 
         addUserDetails, 
-        getAuthenticatedUserData} = require('./handlers/users');
+        getAuthenticatedUserData,
+        getUserProfile,
+        markNotificationsAsRead} = require('./handlers/users');
 const {createComment, deleteComment} = require('./handlers/comments');
 const {db} = require('./util/admin');
 const firebaseAuth = require('./util/firebaseAuth');
@@ -33,6 +35,9 @@ app.post('/post/:postId/like', firebaseAuth, likePost);
 // unlike a post
 app.delete('/post/:postId/like', firebaseAuth, unlikePost);
 
+// mark viewed notifications as read
+app.post('/notifications', firebaseAuth, markNotificationsAsRead);
+
 // user signup
 app.post('/signup', signup);
 // login route
@@ -43,6 +48,8 @@ app.post("/user/image", firebaseAuth, uploadImage)
 app.post("/user", firebaseAuth, addUserDetails)
 // get logged in user details
 app.get("/user", firebaseAuth, getAuthenticatedUserData);
+// view a user profile
+app.get("/user/:username", getUserProfile);
 
 // api endpoint for express app
 exports.api = functions.https.onRequest(app);
@@ -53,10 +60,11 @@ exports.createNotificationOnLike = functions
     .firestore
     .document('likes/{id}')
     .onCreate((snapshot) => {
-        db
+        return db
         .doc(`/posts/${snapshot.data().postId}`)
         .get()
         .then((doc) => {
+            if (doc.data().username === snapshot.data().username) return;
             if (doc.exists) {
                 return db.doc(`/notifications/${snapshot.id}`).set({
                     createAt: new Date().toISOString(),
@@ -80,7 +88,7 @@ exports.deleteNotificationOnUnlike = functions
     .firestore
     .document('/likes/{id}')
     .onDelete((snapshot) => {
-        db
+        return db
         .doc(`/notifications/${snapshot.id}`)
         .delete()
         .then(() => {
@@ -97,11 +105,12 @@ exports.createNotificationOnComment = functions
     .firestore
     .document('comments/{id}')
     .onCreate((snapshot) => {
-        db
+        return db
         .doc(`/posts/${snapshot.data().postId}`)
         .get()
         .then((doc) => {
             if (doc.exists) {
+                if (doc.data().username === snapshot.data().username) return;
                 return db.doc(`/notifications/${snapshot.id}`).set({
                     createdAt: new Date().toISOString(),
                     recipient: doc.data().username,
@@ -124,7 +133,7 @@ exports.deleteNotificationOnUncomment = functions
     .firestore
     .document('comments/{id}')
     .onDelete(snapshot => {
-        db
+        return db
         .doc(`/notifications/${snapshot.id}`)
         .delete()
         .then(() => {return;})
@@ -133,3 +142,71 @@ exports.deleteNotificationOnUncomment = functions
             return;
         });
     });
+
+// change stored user image in a post when user uploads a new image
+exports.updateOnUserImageChange = functions
+    .firestore
+    .document('users/{id}')
+    .onUpdate(change => {
+        if (change.before.data().imageUrl !== change.after.data().imageUrl) {
+            const batch = db.batch();
+            return db
+                .collection('posts')
+                .where('username', '==', change.before.id)
+                .get()
+                .then(data => {
+                    data.forEach(doc => {
+                        batch.update(doc.ref, {imageUrl: change.after.data().imageUrl});
+                    });
+                    return db
+                        .collection('comments')
+                        .where('username', '==', change.before.id)
+                        .get();
+                })
+                .then(data => {
+                    data.forEach(doc => {
+                        batch.update(doc.ref, {imageUrl: change.after.data().imageUrl});
+                    });
+                    return batch.commit();
+                })
+                .then(() => {
+                    return;
+                })
+                .catch(error => {
+                    console.error(error);
+                    return;
+                })
+        }
+        return;
+    });
+
+exports.onPostDelete = functions
+    .firestore
+    .document('posts/{id}')
+    .onDelete((snapshot, context) => {
+        const batch = db.batch();
+        return db
+        .collection('comments')
+        .where('postId', '==', context.params.postId)
+        .get()
+        .then(data => {
+            data.forEach(doc => {
+                batch.delete(doc.ref);
+            })
+            return db
+                .collection('likes')
+                .where('postId', '==', context.params.postId)
+                .get();
+        })
+        .then(data => {
+            data.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            return batch.commit();
+        })
+        .then(() => {return;})
+        .catch(error => {
+            console.error(error);
+            return;
+        })
+    })

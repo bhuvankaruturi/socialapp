@@ -76,45 +76,11 @@ exports.deletePost = (request, response) => {
     .get()
     .then(doc => {
         if (!doc.exists) return response.status(404).json({error: 'Post not found'});
-        else if (doc.data().username !== request.user.username) return response.status(404).json({error: 'Unauthorized action'});
+        else if (doc.data().username !== request.user.username) return response.status(401).json({error: 'Unauthorized action'});
         else {
             db
             .doc(`/posts/${request.params.postId}`)
             .delete()
-            .then(() => {
-                return db
-                .collection('likes')
-                .where('postId', '==', request.params.postId)
-                .get();
-            })
-            .then(querySnapshot => {
-                return querySnapshot.forEach(doc => {
-                    doc
-                    .ref
-                    .delete()
-                    .catch(error => {
-                        console.error(error);
-                        return response.status(500).json({error: error.code});
-                    });
-                }); 
-            })
-            .then(() => {
-                return db
-                .collection('comments')
-                .where('postId', '==', request.params.postId)
-                .get();
-            })
-            .then(querySnapshot => {
-                return querySnapshot.forEach(doc => {
-                    doc
-                    .ref
-                    .delete()
-                    .catch(error => {
-                        console.error(error);
-                        return response.status(500).json({error: error.code});
-                    })
-                })
-            })
             .then(() => {
                 return response.status(200).json({message: "Post has been deleted"});
             })

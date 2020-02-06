@@ -156,7 +156,7 @@ exports.updateOnUserImageChange = functions
                 .get()
                 .then(data => {
                     data.forEach(doc => {
-                        batch.update(doc.ref, {imageUrl: change.after.data().imageUrl});
+                        batch.update(doc.ref, {userImage: change.after.data().imageUrl});
                     });
                     return db
                         .collection('comments')
@@ -165,19 +165,20 @@ exports.updateOnUserImageChange = functions
                 })
                 .then(data => {
                     data.forEach(doc => {
-                        batch.update(doc.ref, {imageUrl: change.after.data().imageUrl});
+                        batch.update(doc.ref, {userImage: change.after.data().imageUrl});
                     });
                     return batch.commit();
                 })
                 .then(() => {
-                    return;
+                    return true;
                 })
                 .catch(error => {
                     console.error(error);
-                    return;
+                    return false;
                 });
         }
-        return;
+        // return some value to avoid error
+        return true;
     });
 
 exports.onPostDelete = functions
@@ -187,7 +188,7 @@ exports.onPostDelete = functions
         const batch = db.batch();
         return db
         .collection('comments')
-        .where('postId', '==', context.params.postId)
+        .where('postId', '==', snapshot.id)
         .get()
         .then(data => {
             data.forEach(doc => {
@@ -195,7 +196,7 @@ exports.onPostDelete = functions
             })
             return db
                 .collection('likes')
-                .where('postId', '==', context.params.postId)
+                .where('postId', '==', snapshot.id)
                 .get();
         })
         .then(data => {
@@ -204,7 +205,7 @@ exports.onPostDelete = functions
             });
             return db
             .collection('notifications')
-            .where('postId', '==', context.params.postId)
+            .where('postId', '==', snapshot.id)
             .get();
         })
         .then(data => {
@@ -213,9 +214,9 @@ exports.onPostDelete = functions
             });
             return batch.commit();
         })
-        .then(() => {return;})
+        .then(() => {return true;})
         .catch(error => {
             console.error(error);
-            return;
+            return false;
         });
     });

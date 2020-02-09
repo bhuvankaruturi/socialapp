@@ -6,7 +6,6 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 
 // MUI imports
-import Container from "@material-ui/core/Container";
 import { ThemeProvider } from '@material-ui/core/styles';
 import CreateMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import './App.css';
@@ -28,7 +27,7 @@ const theme = CreateMuiTheme({
     },
     typography: {
       useNextVariants: true
-    }
+    },
   });
 
 class App extends Component {
@@ -38,17 +37,9 @@ class App extends Component {
         <Router>
             <NavBar />
             <Switch>
-              <Container maxWidth="sm">
-                <Route exact path="/">
-                  <Home />
-                </Route>
-                <Route exact path="/signup">
-                  <Signup />
-                </Route>
-                <Route exact path="/login">
-                  <Login />
-                </Route>
-              </Container>
+                <Route exact path="/" component={Home}/>
+                <Route exact path="/signup" component={Signup}/>
+                <Route exact path="/login" component={Login}/>
             </Switch>
         </Router>
       </ThemeProvider>

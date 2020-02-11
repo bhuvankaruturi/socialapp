@@ -3,6 +3,7 @@ import {Link} from 'react-router-dom';
 import PropTypes from 'prop-types';
 import icon from '../images/icon.png';
 import axios from 'axios';
+import isAuthenticated from '../util/isAuthenticated';
 
 // MUI imports
 import withStyles from '@material-ui/core/styles/withStyles';
@@ -12,46 +13,14 @@ import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-const styles = {
-    form: {
-        display: 'flex',
-        textAlign: 'center'
-    },
-    image: {
-        maxWidth: '75px',
-        maxHeight: '65px',
-        margin: "20px auto 20px auto"
-    },
-    pageTitle: {
-        margin: "10px auto 10px auto" 
-    },
-    textField: {
-        margin: "10px auto 10px auto"
-    },
-    button: {
-        display: 'block',
-        maxWidth: '200px',
-        margin: '20px auto 10px auto',
-        position: 'relative'
-    },
-    customError: {
-        color: 'red',
-        fontSize: '0.8rem',
-        marginTop: '10px'
-    },
-    progress: {
-        color: "primary",
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        marginTop: -12,
-        marginLeft: -12,
-    }
-};
+const styles = (theme) => ({
+    ...theme.formStyles
+});
 
 class Login extends Component {
     constructor(props) {
         super(props);
+        // if (isAuthenticated()) this.props.history.push('/');
         this.state = {
             email: '',
             password: '',
@@ -59,6 +28,7 @@ class Login extends Component {
             errors: {}
         }
     }
+    
     handleSubmit = (event) => {
         event.preventDefault();
         this.setState({loading: true});
@@ -68,10 +38,12 @@ class Login extends Component {
         }
         axios.post('/login', userData)
         .then(res => {
-            console.log(res.data);
+            localStorage.setItem("fbScaTok", `Bearer ${res.data.token}`);
+            localStorage.setItem("username", "username");
             this.setState({
                 loading: false
             });
+            this.props.isAuthenticated(true, "username");
             this.props.history.push('/');
         })
         .catch(error => {

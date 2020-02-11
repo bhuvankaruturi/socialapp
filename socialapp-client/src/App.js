@@ -1,48 +1,63 @@
 import React, {Component} from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import NavBar from "./components/NavBar";
 import Home from "./pages/Home";
-import Signup from "./pages/Signup";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Signout from "./pages/Signout";
+import isAuthenticated from "./util/isAuthenticated";
 
 // MUI imports
 import { ThemeProvider } from '@material-ui/core/styles';
 import CreateMuiTheme from "@material-ui/core/styles/createMuiTheme";
+import themeObject from "./util/theme"
 import './App.css';
 
-const theme = CreateMuiTheme({
-    palette: {
-      primary: {
-        main: '#4fc3f7',
-        light: '#8bf6ff',
-        dark: '#0093c4',
-        contrastText: '#000',
-      },
-      secondary: {
-        main: '#ffcdd2',
-        light: '#ffffff',
-        dark: '#cb9ca1',
-        contrastText: '#000'
-      },
-    },
-    typography: {
-      useNextVariants: true
-    },
-  });
+const theme = CreateMuiTheme(themeObject);
 
 class App extends Component {
+  constructor (props) {
+    super(props);
+    this.state = {
+        authenticated: isAuthenticated(),
+        username: localStorage.getItem('username')
+    };
+    this.isAuthenticated = this.isAuthenticated.bind(this);
+  }
+
+  isAuthenticated = (authenticated, username) => {
+    this.setState({authenticated, username});
+  }
+
   render() {
+    let signupPage = (props) => (
+          this.state.authenticated 
+          ? <Redirect to="/" {...props}/> 
+          : <Signup {...props} isAuthenticated={this.isAuthenticated}/>
+        );
+    let loginPage = (props) => (
+          this.state.authenticated 
+          ? <Redirect to="/" {...props}/>  
+          : <Login {...props} isAuthenticated={this.isAuthenticated}/>
+        );
+    let signout = (props) => (
+          !this.state.authenticated
+          ? <Redirect to="/" {...props}/>
+          : <Signout {...props} isAuthenticated={this.isAuthenticated}/>
+    );
+
     return (
-      <ThemeProvider theme={theme}>
-        <Router>
-            <NavBar />
+        <Router> 
+          <ThemeProvider theme={theme}>
+            <NavBar authenticated={this.state.authenticated} username={this.state.username}/>
             <Switch>
-                <Route exact path="/" component={Home}/>
-                <Route exact path="/signup" component={Signup}/>
-                <Route exact path="/login" component={Login}/>
+                <Route exact path="/" render={(props) => <Home {...props}/>} />
+                <Route exact path="/signup" render={ signupPage } />}
+                <Route exact path="/login" render={ loginPage } />}
+                <Route exact path="/signout" render={ signout } />}
             </Switch>
+            </ThemeProvider>
         </Router>
-      </ThemeProvider>
     );
   }
 }

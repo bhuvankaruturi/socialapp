@@ -4,11 +4,10 @@ const isAuthenticated = () => {
     let token = localStorage.getItem('fbScaTok');
     if (token) {
         let decodedToken = jwtDecode(token);
-        console.log(decodedToken);
         if (decodedToken.exp * 1000 < Date.now()) {
             localStorage.removeItem('fbScaTok');
             localStorage.setItem('username', '');
-            window.location.href("/");
+            window.location.href = "/";
             return false;
         } else {
             return true;

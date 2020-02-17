@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
-import {Link} from 'react-router-dom';
+import {Link, Redirect} from 'react-router-dom';
 import PropTypes from 'prop-types';
 import icon from '../images/icon.png';
-import axios from 'axios';
-import isAuthenticated from '../util/isAuthenticated';
+
+// Redux imports
+import {connect} from 'react-redux';
+import {loginUser} from '../redux/actions/userActions';
 
 // MUI imports
 import withStyles from '@material-ui/core/styles/withStyles';
@@ -20,48 +22,32 @@ const styles = (theme) => ({
 class Login extends Component {
     constructor(props) {
         super(props);
-        // if (isAuthenticated()) this.props.history.push('/');
         this.state = {
             email: '',
-            password: '',
-            loading: false,
-            errors: {}
+            password: ''
         }
     }
     
     handleSubmit = (event) => {
         event.preventDefault();
-        this.setState({loading: true});
         const userData = {
             email: this.state.email,
             password: this.state.password
-        }
-        axios.post('/login', userData)
-        .then(res => {
-            localStorage.setItem("fbScaTok", `Bearer ${res.data.token}`);
-            localStorage.setItem("username", "username");
-            this.setState({
-                loading: false
-            });
-            this.props.isAuthenticated(true, "username");
-            this.props.history.push('/');
-        })
-        .catch(error => {
-            console.error(error);
-            this.setState({
-                errors: error.response ? error.response.data : error,
-                loading: false
-            })
-        });
-    }
+        };
+        this.props.loginUser(userData, this.props.history);
+    };
+
     handleChange = (event) => {
         this.setState({
             [event.target.name]: event.target.value
         })
-    }
+    };
+
     render() {
-        const {classes} = this.props;
-        const {errors, loading} = this.state;
+        const {classes, UI: {loading}} = this.props;
+        let {UI: {errors}} = this.props;
+        if (errors == null) errors = {};
+        if (this.props.user.authenticated) return (<Redirect to="/"/>);
         return (
           <Grid container className={classes.form}>
               <Grid item sm/>
@@ -117,7 +103,21 @@ class Login extends Component {
 }
 
 Login.propTypes = {
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    loginUser: PropTypes.func.isRequired,
+    user: PropTypes.object.isRequired,
+    UI: PropTypes.object.isRequired
+};
+
+const mapStateToProps = (state) => {
+    return {
+        user: state.user,
+        UI: state.UI
+    }
+};
+
+const mapActionsToProps = {
+    loginUser
 }
 
-export default withStyles(styles)(Login);
+export default connect(mapStateToProps, mapActionsToProps)(withStyles(styles)(Login));

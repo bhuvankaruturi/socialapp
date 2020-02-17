@@ -1,15 +1,25 @@
 import React, { Component } from 'react';
 import {Redirect} from 'react-router-dom';
 
+// Redux imports
+import {connect} from 'react-redux';
+import {signoutUser} from '../redux/actions/userActions';
+
 class Signout extends Component {
+    componentDidMount() {
+        this.props.signoutUser();
+    }
+
     render() {
-        localStorage.removeItem('fbScaTok');
-        this.props.isAuthenticated(false, '');
-        localStorage.setItem('username', '');
         return (
             <Redirect to="/login"/>
         )
     }
 }
 
-export default Signout;
+
+const mapActionstoProps = {
+    signoutUser
+};
+
+export default connect(() => ({}), mapActionstoProps)(Signout);

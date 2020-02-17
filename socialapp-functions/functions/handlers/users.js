@@ -123,6 +123,7 @@ exports.getAuthenticatedUserData = (request, response) => {
     .then(doc => {
         if (doc.exists) {
             userData.credentials = doc.data();
+			userData.username = doc.id;
             return db
                 .collection('likes')
                 .where('username','==', request.user.username)

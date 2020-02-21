@@ -71,7 +71,8 @@ class Signup extends Component {
                             helperText={errors.email}
                             error={errors.username ? true : false}
                             value= {this.state.username} 
-                            onChange={this.handleChange} 
+                            onChange={this.handleChange}
+                            required 
                             fullWidth/>
                     <TextField id="email" 
                         name="email" 
@@ -82,6 +83,7 @@ class Signup extends Component {
                         error={errors.email ? true : false}
                         value= {this.state.email} 
                         onChange={this.handleChange} 
+                        required
                         fullWidth/>
                     <TextField id="password" 
                         name="password" 
@@ -92,6 +94,7 @@ class Signup extends Component {
                         error={errors.password ? true : false}
                         value={this.state.password} 
                         onChange={this.handleChange} 
+                        required
                         fullWidth/>
                     <TextField id="confirmPassword" 
                         name="confirmPassword" 
@@ -102,6 +105,7 @@ class Signup extends Component {
                         error={errors.confirmPassword ? true : false}
                         value= {this.state.confirmPassword} 
                         onChange={this.handleChange} 
+                        required
                         fullWidth/>
                     {errors.general && (
                         <Typography variant="body2" className={classes.customError}>

@@ -15,10 +15,10 @@ export class NavBar extends Component {
         let signup;
         let login;
         if (this.props.authenticated) {
-            signup = <Typography>Signed in as {this.props.username}</Typography>;
+            signup = this.props.username && <Typography>Signed in as {this.props.username}</Typography>;
             login = <Button color="inherit" component={Link} to="/signout">Signout</Button>;
         } else {
-            signup = <Button color="inherit" component={Link} to="/signup">Signup</Button>;
+            signup = <Button color="inherit" component={Link} to="/signup">Signin</Button>;
             login = <Button color="inherit" component={Link} to="/login">Login</Button>;
         }
         return (

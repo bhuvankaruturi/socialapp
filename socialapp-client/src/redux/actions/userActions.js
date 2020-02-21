@@ -1,13 +1,11 @@
-import {SET_USER, SET_ERRORS, CLEAR_ERRORS, LOADING_UI, SET_UNAUTHENTICATED} from '../types';
+import {SET_USER, SET_ERRORS, CLEAR_ERRORS, LOADING_UI, SET_UNAUTHENTICATED, LOADING_USER} from '../types';
 import axios from 'axios';
 
 export const loginUser = (userData, history) => (dispatch) => {
     dispatch({type: LOADING_UI});
     axios.post('/login', userData)
         .then(res => {
-            let fbScaTok = `Bearer ${res.data.token}`;
-            localStorage.setItem("fbScaTok", fbScaTok);
-            axios.defaults.headers.common['Authorization'] = fbScaTok;
+            setLocalStorageToken(res.data.token);
             dispatch(getUserData());
             dispatch({type: CLEAR_ERRORS});
             history.push('/');
@@ -25,9 +23,7 @@ export const signupUser = (userData, history) => (dispatch) => {
     dispatch({type: LOADING_UI});
     axios.post('/signup', userData)
         .then(res => {
-            let fbScaTok = `Bearer ${res.data.token}`;
-            localStorage.setItem("fbScaTok", fbScaTok);
-            axios.defaults.headers.common['Authorization'] = fbScaTok;
+            setLocalStorageToken(res.data.token);
             dispatch(getUserData());
             dispatch({type: CLEAR_ERRORS});
             history.push('/');
@@ -42,21 +38,43 @@ export const signupUser = (userData, history) => (dispatch) => {
 };
 
 export const getUserData = () => (dispatch) => {
+    dispatch({type: LOADING_USER});
     axios.get('/user')
         .then(res => {
-            console.log(res.data);
             dispatch({
                 type: SET_USER,
                 payload: res.data
             })
         })
-        .catch(error => dispatch({
-            type: SET_ERRORS,
-            payload: error.response.data
-    }));
+        .catch(err => console.error(err));
 };
 
 export const signoutUser = () => (dispatch) => {
     localStorage.removeItem('fbScaTok');
+    delete axios.defaults.headers.common['Authorization'];
     dispatch({type: SET_UNAUTHENTICATED});
+}
+
+export const uploadImage = (formData) => (dispatch) => {
+    dispatch({type: LOADING_USER});
+    axios.post('/user/image', formData)
+        .then(res => {
+            dispatch(getUserData());
+        })
+        .catch(err => console.error(err));
+}
+
+export const editUserDetails = (userDetails) => (dispatch) => {
+    dispatch({type: LOADING_USER});
+    axios.post('/user', userDetails)
+    .then(res => {
+        dispatch(getUserData());
+    })
+    .catch(err => console.error(err)); 
+}
+
+export const setLocalStorageToken = (token) => {
+    let fbScaTok = `Bearer ${token}`;
+    localStorage.setItem("fbScaTok", token);
+    axios.defaults.headers.common['Authorization'] = fbScaTok;
 }

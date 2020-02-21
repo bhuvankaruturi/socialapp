@@ -10,6 +10,8 @@ import isAuthenticated from "./util/isAuthenticated";
 // redux imports
 import {Provider} from "react-redux";
 import store from './redux/store';
+import {SET_AUTHENTICATED} from './redux/types';
+import {signoutUser, getUserData, setLocalStorageToken} from './redux/actions/userActions';
 
 // MUI imports
 import { ThemeProvider } from '@material-ui/core/styles';
@@ -20,17 +22,15 @@ import './App.css';
 const theme = CreateMuiTheme(themeObject);
 
 class App extends Component {
-  constructor (props) {
-    super(props);
-    this.state = {
-        authenticated: isAuthenticated(),
-        username: localStorage.getItem('username')
-    };
-    this.isAuthenticated = this.isAuthenticated.bind(this);
-  }
-
-  isAuthenticated = (authenticated, username) => {
-    this.setState({authenticated, username});
+  componentDidMount() {
+    let status = isAuthenticated();
+    if (status.authenticated) {
+      store.dispatch({type: SET_AUTHENTICATED});
+      setLocalStorageToken(status.token);
+      store.dispatch(getUserData());
+    } else {
+      store.dispatch(signoutUser());
+    }
   }
 
   render() {
@@ -38,12 +38,12 @@ class App extends Component {
       <ThemeProvider theme={theme}>
         <Provider store={store}>
           <Router> 
-            <NavBar authenticated={this.state.authenticated} username={this.state.username}/>
+            <NavBar />
             <Switch>
                 <Route exact path="/" render={(props) => <Home {...props}/>} />
-                <Route exact path="/signup" render={ (props) => <Signup {...props} isAuthenticated={this.isAuthenticated}/> } />}
+                <Route exact path="/signup" render={ (props) => <Signup {...props}/> } />}
                 <Route exact path="/login" render={ (props) => <Login {...props} /> } />}
-                <Route exact path="/signout" render={ (props) => <Signout {...props} isAuthenticated={this.isAuthenticated}/> } />}
+                <Route exact path="/signout" render={ (props) => <Signout {...props}/> } />}
             </Switch>
           </Router>
         </Provider>

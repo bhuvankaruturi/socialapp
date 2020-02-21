@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import Post from '../components/Post';
+import Profile from '../components/Profile';
 import axios from "axios";
+
 // MUI imports
 import Container from "@material-ui/core/Container";
 import Grid from '@material-ui/core/Grid';
@@ -28,11 +30,11 @@ export class Home extends Component {
         return (
             <Container maxWidth="md">
             <Grid container spacing={4}>
-                <Grid item sm={8} xs={12}>
+                <Grid item sm={7} xs={12}>
                     {postsMarkup}
                 </Grid>
-                <Grid item sm={4} xs={12}>
-                    <p>Profile.....</p>
+                <Grid item sm={5} xs={12}>
+                    <Profile/>
                 </Grid>
             </Grid>
             </Container>

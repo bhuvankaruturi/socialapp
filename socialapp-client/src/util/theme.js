@@ -13,6 +13,12 @@ export default {
         contrastText: '#000'
       },
     },
+    typography: {
+      button: {
+        fontSize: 'large',
+        textTransform: 'none'
+      }
+    },
     formStyles: {
       typography: {
         useNextVariants: true

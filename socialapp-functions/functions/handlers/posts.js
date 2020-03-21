@@ -171,7 +171,7 @@ exports.unlikePost = (request, response) => {
                 .doc(`/likes/${doc.id}`)
                 .delete()  
                 .then(() => {
-                    console.log("this is execured");
+                    // console.log("this is executed");
                     return db.doc(`/posts/${request.params.postId}`).get();
                 })
                 .then(doc => {

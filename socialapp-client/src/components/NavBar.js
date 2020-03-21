@@ -1,45 +1,58 @@
 import React, { Component } from 'react';
 import {Link} from 'react-router-dom';
-
+import MuiButton from '../util/MuiButton';
 // Redux imports
 import {connect} from 'react-redux';
-
 // MUI imports
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
+// MUI Icons
+import AddIcon from '@material-ui/icons/Add';
+import HomeIcon from '@material-ui/icons/Home';
+import Notifications from '@material-ui/icons/Notifications';
+import SignoutIcon from '@material-ui/icons/ExitToApp';
 
 export class NavBar extends Component {
     render() {
-        let signup;
-        let login;
-        if (this.props.authenticated) {
-            signup = this.props.username && <Typography>Signed in as {this.props.username}</Typography>;
-            login = <Button color="inherit" component={Link} to="/signout">Signout</Button>;
-        } else {
-            signup = <Button color="inherit" component={Link} to="/signup">Signin</Button>;
-            login = <Button color="inherit" component={Link} to="/login">Login</Button>;
-        }
-        return (
-            <React.Fragment>
+        return <React.Fragment>
                 <AppBar position="fixed">
                     <Toolbar className="nav-container">
-                        <Button color="inherit" component={Link} to="/">Home</Button> 
-                        {signup}
-                        {login}
+                        {this.props.authenticated
+                        ?   <React.Fragment>
+                                <MuiButton tip="Create a post">
+                                    <AddIcon color="action"/>
+                                </MuiButton>
+                                <Link to="/">
+                                    <MuiButton tip="Home">
+                                        <HomeIcon color="action"/>
+                                    </MuiButton>
+                                </Link>
+                                <MuiButton tip="Notifications">
+                                    <Notifications color="action"/>
+                                </MuiButton>
+                                <Link to="/signout">
+                                    <MuiButton tip="Signout">
+                                        <SignoutIcon color="action"/>
+                                    </MuiButton>
+                                </Link>
+                            </React.Fragment>
+                        :   <React.Fragment>
+                                <Button color="inherit" component={Link} to="/">Home</Button> 
+                                <Button color="inherit" component={Link} to="/signup">Signin</Button>
+                                <Button color="inherit" component={Link} to="/login">Login</Button>
+                            </React.Fragment>
+                        }    
                     </Toolbar>
                 </AppBar>
                 <Toolbar />
-            </React.Fragment>
-        )
+            </React.Fragment>;
     }
 }
 
 const MapStateToProps = (state) => {
     return {
         authenticated: state.user.authenticated,
-        username: state.user.username
     }
 }
 

@@ -1,40 +1,32 @@
 import React, { Component } from 'react';
 import Post from '../components/Post';
 import Profile from '../components/Profile';
-import axios from "axios";
+import PropTypes from 'prop-types';
+
+// Redux imports
+import {connect} from 'react-redux';
+import {getPosts} from '../redux/actions/dataActions';
 
 // MUI imports
 import Container from "@material-ui/core/Container";
 import Grid from '@material-ui/core/Grid';
 
 export class Home extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            posts: null
-        };
-    }
-
     componentDidMount() {
-        axios.get("/posts")
-        .then(response => {
-            this.setState({posts: response.data});
-        })
-        .catch(error => {
-            console.error(error);
-        });
+        this.props.getPosts();
     }
 
     render() {
-        let postsMarkup = this.state.posts ? this.state.posts.map(post => <Post post={post} key={post.postId}/>) : <p>Loading....</p>;
+        let {loading, posts} = this.props.data;
+        let postsMarkup = loading ? <p>Loading....</p> : posts.map(post => <Post post={post} key={post.postId}/>);
         return (
             <Container maxWidth="md">
             <Grid container spacing={4}>
-                <Grid item sm={7} xs={12}>
-                    {postsMarkup}
-                </Grid>
-                <Grid item sm={5} xs={12}>
+                <Grid item sm={4} xs={12}>
                     <Profile/>
+                </Grid>
+                <Grid item sm={8} xs={12}>
+                    {postsMarkup}
                 </Grid>
             </Grid>
             </Container>
@@ -42,4 +34,17 @@ export class Home extends Component {
     }
 }
 
-export default Home;
+const mapStateToProps = (state) => ({
+    data: state.data
+})
+
+const mapActionsToProps = {
+    getPosts
+}
+
+Home.propTypes = {
+    data: PropTypes.object.isRequired,
+    getPosts: PropTypes.func.isRequired
+}
+
+export default connect(mapStateToProps, mapActionsToProps)(Home);

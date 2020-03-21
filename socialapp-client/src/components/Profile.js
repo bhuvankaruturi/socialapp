@@ -3,14 +3,13 @@ import PropTypes from 'prop-types';
 import {Link} from 'react-router-dom';
 import dayjs from 'dayjs';
 import EditDetails from './EditDetails';
+import MuiButton from '../util/MuiButton';
 // Redux imports
 import {connect} from 'react-redux';
 import {uploadImage} from '../redux/actions/userActions';
 // MUI imports
 import withStyles from '@material-ui/core/styles/withStyles';
 import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
-import Tooltip from '@material-ui/core/Tooltip';
 import { Paper, Typography } from '@material-ui/core';
 import MuiLink from '@material-ui/core/Link';
 // MUI icons
@@ -91,11 +90,9 @@ export class Profile extends Component {
                     <div className="image-wrapper">
                         <img src={imageUrl} alt="profile" className="profile-image"/>
                         <input type="file" id="imageInput" onChange={this.handleImageChange} hidden="hidden"/>
-                        <Tooltip title="Edit Image" placement="top">
-                            <IconButton onClick={this.handleEditPicture} className={classes.buttons}>
-                                <EditIcon color="primary"/>
-                            </IconButton>
-                        </Tooltip>
+                        <MuiButton tip="Edit Image" placement="top" btnClassName={classes.buttons} onClick={this.handleEditPicture}>
+                            <EditIcon color="primary"/>
+                        </MuiButton>
                     </div>  
                     <hr/>
                     <div className="profile-details">

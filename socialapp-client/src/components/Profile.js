@@ -133,7 +133,7 @@ export class Profile extends Component {
                     <Button variant="contained" color="primary" component={Link} to="/login">
                         Login
                     </Button>
-                    <Button variant="contained" color="secondary" component={Link} to="/signup">
+                    <Button variant="contained" color="primary" component={Link} to="/signup">
                         Signup
                     </Button>
                 </div>

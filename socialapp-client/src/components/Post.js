@@ -3,6 +3,8 @@ import {Link} from 'react-router-dom';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import PropTypes from 'prop-types';
+import DeletePost from './DeletePost';
+import PostDialog from './PostDialog';
 
 // Redux imports
 import {connect} from 'react-redux';
@@ -20,7 +22,6 @@ import ThumbUpOutlinedIcon from '@material-ui/icons/ThumbUpOutlined';
 import CommentIcon from '@material-ui/icons/Comment';
 import MuiButton from '../util/MuiButton';
 import withStyles from '@material-ui/core/styles/withStyles'; 
-import DeletePost from './DeletePost';
 
 const styles = {
     card: {
@@ -103,6 +104,7 @@ class Post extends Component {
                 </MuiButton>
                 <span>{post.commentCount?post.commentCount:0} comments</span>
             </CardActions>
+            <PostDialog postId={post.postId} username={post.username}/>
         </Card>
         );
     }

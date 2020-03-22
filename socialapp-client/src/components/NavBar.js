@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {Link} from 'react-router-dom';
 import MuiButton from '../util/MuiButton';
+import NewPost from './NewPost';
 // Redux imports
 import {connect} from 'react-redux';
 // MUI imports
@@ -8,7 +9,6 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 // MUI Icons
-import AddIcon from '@material-ui/icons/Add';
 import HomeIcon from '@material-ui/icons/Home';
 import Notifications from '@material-ui/icons/Notifications';
 import SignoutIcon from '@material-ui/icons/ExitToApp';
@@ -20,9 +20,7 @@ export class NavBar extends Component {
                     <Toolbar className="nav-container">
                         {this.props.authenticated
                         ?   <React.Fragment>
-                                <MuiButton tip="Create a post">
-                                    <AddIcon color="action"/>
-                                </MuiButton>
+                                <NewPost />
                                 <Link to="/">
                                     <MuiButton tip="Home">
                                         <HomeIcon color="action"/>

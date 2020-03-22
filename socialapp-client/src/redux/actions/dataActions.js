@@ -1,4 +1,5 @@
-import {SET_POSTS, LOADING_DATA, LIKE_POST, UNLIKE_POST, DELETE_POST} from '../types';
+import {SET_POSTS, LOADING_DATA, LIKE_POST, UNLIKE_POST, DELETE_POST, 
+    CREATE_POST, SET_ERRORS, CLEAR_ERRORS, LOADING_UI, SET_POST, STOP_LOADING} from '../types';
 import axios from 'axios';
 
 export const getPosts = () => (dispatch) => {
@@ -11,6 +12,32 @@ export const getPosts = () => (dispatch) => {
             console.error(error);
             dispatch({type: SET_POSTS, payload: []});
         });
+}
+
+export const getPost = (postId) => (dispatch) => {
+    dispatch({type: LOADING_UI});
+    axios.get(`/post/${postId}`)
+        .then(response => {
+            dispatch({type: SET_POST, payload: response.data});
+            dispatch({type: STOP_LOADING});
+        })
+        .catch(error => {
+            console.error(error);
+            dispatch({type: SET_ERRORS, payload: error.response.data});
+        })
+}
+
+export const createPost = (postData) => (dispatch) => {
+    dispatch({type: LOADING_UI});
+    axios.post('/post', postData)
+        .then(response => {
+            dispatch({type: CLEAR_ERRORS});
+            dispatch({type: CREATE_POST, payload: {data: response.data}});
+        })
+        .catch(error => {
+            console.error(error);
+            dispatch({type: SET_ERRORS, payload: error.response.data});
+        })
 }
 
 export const deletePost = (postId) => (dispatch) => {

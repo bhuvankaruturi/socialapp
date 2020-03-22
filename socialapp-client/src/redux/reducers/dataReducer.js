@@ -1,8 +1,9 @@
-import {SET_POSTS, LOADING_DATA, LIKE_POST, UNLIKE_POST, DELETE_POST} from '../types';
+import {SET_POSTS, LOADING_DATA, LIKE_POST, UNLIKE_POST, DELETE_POST, CREATE_POST, SET_POST, UNSET_POST} from '../types';
 
 const initialState = {
     posts: [],
-    loading: false
+    loading: false,
+    currentPost: null
 }
 
 export default function (state=initialState, action) {
@@ -13,10 +14,33 @@ export default function (state=initialState, action) {
                 posts: action.payload,
                 loading: false
             }
+        case SET_POST:
+            return {
+                ...state,
+                currentPost: action.payload
+            }
+        case UNSET_POST:
+            return {
+                ...state,
+                currentPost: null
+            }
         case LOADING_DATA:
             return {
                 ...state,
                 loading: true
+            }
+        case CREATE_POST:
+            if (action.payload !== null) {
+                return {
+                    ...state,
+                    posts: [
+                        {...action.payload.data},
+                        ...state.posts
+                    ],
+                    loading: false
+                }
+            } else {
+                return state;
             }
         case DELETE_POST:
             if (action.payload !== null) {

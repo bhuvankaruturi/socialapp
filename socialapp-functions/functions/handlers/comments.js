@@ -10,22 +10,28 @@ exports.createComment = (request, response) => {
         postId: request.params.postId,
         userImage: request.user.imageUrl,
     };
-    let commentsCount = 0;
+    let commentCount = 0;
     let batch = db.batch();
     let postDocRef = db.doc(`/posts/${request.params.postId}`);
     postDocRef.get()
     .then(doc => {
         if (!doc.exists) return response.status(404).json({error: "Post not found"});
-        if (doc.data().commentsCount) commentsCount = doc.data().commentsCount;
+        if (doc.data().commentCount) commentCount = doc.data().commentCount;
         let newCommentDoc = db.collection('comments').doc();
-        let commentId = newCommentDoc.id;
+        // let commentId = newCommentDoc.id;
         batch.set(newCommentDoc, commentData);
-        commentsCount++;
-        batch.update(postDocRef, {commentsCount});
+        commentCount++;
+        batch.update(postDocRef, {commentCount});
         return batch
             .commit()
             .then(() => {
-                return response.status(201).json({message: `comment ${commentId} created successfully`}); 
+                return newCommentDoc.get(); 
+            })
+            .then(doc => {
+                return response.status(201).json({
+                    commentId: doc.id,
+                    ...doc.data()
+                });
             })
             .catch(error => {
                 console.error(error);

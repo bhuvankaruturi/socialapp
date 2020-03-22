@@ -17,12 +17,12 @@ exports.getAllPosts = (request, response) => {
 };
 
 exports.createPost = (request, response) => {
-    if (request.body.body.trim === "") {
-        response.status(400).json({body: "Body must not be empty"});
+    if (request.body.body.trim() === "") {
+        return response.status(400).json({body: "Body must not be empty"});
     }
 
     let newPost = {
-        body:  request.body.body,
+        body:  request.body.body.trim(),
         username: request.user.username,
         userImage: request.user.imageUrl,
         createdAt: new Date().toISOString(),
@@ -33,8 +33,14 @@ exports.createPost = (request, response) => {
     db
     .collection("posts")
     .add(newPost)
-    .then((doc) => {
-        response.json({message: `document ${doc.id} successfully created`});
+    .then(docRef => {
+        return docRef.get();
+    })
+    .then(doc => {
+        return response.status(201).json({
+            postId: doc.id,
+            ...doc.data()
+        });
     })
     .catch((error) => {
         response.status(500).json({error : 'something went wrong'});

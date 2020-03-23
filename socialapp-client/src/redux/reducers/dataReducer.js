@@ -1,9 +1,9 @@
-import {SET_POSTS, LOADING_DATA, LIKE_POST, UNLIKE_POST, DELETE_POST, CREATE_POST, SET_POST, UNSET_POST} from '../types';
+import {SET_POSTS, LOADING_DATA, LIKE_POST, UNLIKE_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, SET_POST, UNSET_POST} from '../types';
 
 const initialState = {
     posts: [],
     loading: false,
-    currentPost: null
+    currentPost: {}
 }
 
 export default function (state=initialState, action) {
@@ -22,7 +22,7 @@ export default function (state=initialState, action) {
         case UNSET_POST:
             return {
                 ...state,
-                currentPost: null
+                currentPost: {}
             }
         case LOADING_DATA:
             return {
@@ -34,12 +34,27 @@ export default function (state=initialState, action) {
                 return {
                     ...state,
                     posts: [
-                        {...action.payload.data},
+                        action.payload.data,
                         ...state.posts
                     ],
                     loading: false
                 }
             } else {
+                return state;
+            }
+        case CREATE_COMMENT:
+            if (action.payload.postId === state.currentPost.postId) {
+                return {
+                    ...state,
+                    currentPost: {
+                        ...state.currentPost,
+                        comments: [
+                            {...action.payload.data},
+                            ...state.currentPost.comments
+                        ]
+                    }
+                }
+            } else { 
                 return state;
             }
         case DELETE_POST:
@@ -63,7 +78,11 @@ export default function (state=initialState, action) {
                             likes += action.payload.likes;
                             return {...post, likes}
                         };
-                    })
+                    }),
+                    currentPost: state.currentPost.postId === action.payload.postId ? {
+                        ...state.currentPost,
+                        likes: state.currentPost.likes + action.payload.likes
+                    }: state.currentPost
                 }
             } else {
                 return state;

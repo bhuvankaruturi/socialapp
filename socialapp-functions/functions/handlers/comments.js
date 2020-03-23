@@ -2,9 +2,9 @@ const {db} = require('../util/admin');
 
 // comment on a post
 exports.createComment = (request, response) => {
-    if (request.body.body.trim() === '') return reponse.status(400).json({comment: "Invalid comment. Must not be empty"});
+    if (request.body.body.trim() === '') return response.status(400).json({comment: "Invalid comment. Must not be empty"});
     let commentData = {
-        body: request.body.body,
+        body: request.body.body.trim(),
         createdAt: new Date().toISOString(),
         username: request.user.username,
         postId: request.params.postId,

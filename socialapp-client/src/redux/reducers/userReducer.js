@@ -5,7 +5,8 @@ const initialState = {
     authenticated: false,
     credentials: {},
     likes: [],
-    notifications: []
+    notifications: [],
+    username: null
 };
 
 export default function(state = initialState, action) {

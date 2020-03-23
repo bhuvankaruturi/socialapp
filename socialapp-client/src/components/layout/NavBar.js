@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import {Link} from 'react-router-dom';
-import MuiButton from '../util/MuiButton';
-import NewPost from './NewPost';
+import MuiButton from '../../util/MuiButton';
+import NewPost from '../post/NewPost';
 // Redux imports
 import {connect} from 'react-redux';
 // MUI imports
@@ -37,7 +37,7 @@ export class NavBar extends Component {
                             </React.Fragment>
                         :   <React.Fragment>
                                 <Button color="inherit" component={Link} to="/">Home</Button> 
-                                <Button color="inherit" component={Link} to="/signup">Signin</Button>
+                                <Button color="inherit" component={Link} to="/signup">Signup</Button>
                                 <Button color="inherit" component={Link} to="/login">Login</Button>
                             </React.Fragment>
                         }    

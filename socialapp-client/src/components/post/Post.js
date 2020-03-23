@@ -5,25 +5,24 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import PropTypes from 'prop-types';
 import DeletePost from './DeletePost';
 import PostDialog from './PostDialog';
+import LikeButton from './LikeButton';
 
 // Redux imports
 import {connect} from 'react-redux';
-import {likePost, unlikePost} from '../redux/actions/dataActions';
+import {likePost, unlikePost} from '../../redux/actions/dataActions';
 
-//sMUI imports
+// MUI imports
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import Avatar from '@material-ui/core/Avatar';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import CardActions from '@material-ui/core/CardActions';
-import ThumbUpIcon from '@material-ui/icons/ThumbUp';
-import ThumbUpOutlinedIcon from '@material-ui/icons/ThumbUpOutlined';
 import CommentIcon from '@material-ui/icons/Comment';
-import MuiButton from '../util/MuiButton';
+import MuiButton from '../../util/MuiButton';
 import withStyles from '@material-ui/core/styles/withStyles'; 
 
-const styles = {
+const styles = (theme) => ({
     card: {
         marginBottom: 15,
     },
@@ -31,51 +30,19 @@ const styles = {
         margin: 0,
         paddingTop: 0,
         paddingBottom: 0
+    },
+    span: {
+        paddingBottom: 1
     }
-}
+});
 
 class Post extends Component {
-    likePostState = () => {
-        if (this.props.user.likes.findIndex(like => like.postId === this.props.post.postId)>=0) 
-            return true;
-        return false;
-    }
-    likePost = () => {
-        this.props.likePost(this.props.user.username, this.props.post.postId);
-    }
-    unlikePost = () => {
-        this.props.unlikePost(this.props.user.username, this.props.post.postId);
-    }
     deletePost = () => {
         this.props.deletePost(this.props.post.postId);
     }
     render() {
         dayjs.extend(relativeTime);
         let {classes, post, user} = this.props;
-        let likeButton;
-        if (this.props.user.authenticated) {
-            if (this.likePostState()) {
-                likeButton = (
-                    <MuiButton tip="unlike" onClick={this.unlikePost}>
-                        <ThumbUpIcon color="primary"/>
-                    </MuiButton>
-                );
-            } else {
-                likeButton = (
-                    <MuiButton tip="like" onClick={this.likePost}>
-                        <ThumbUpOutlinedIcon/>
-                    </MuiButton>
-                );
-            }
-        } else {
-            likeButton = (
-                <Link to="/login">
-                    <MuiButton tip="like">
-                        <ThumbUpOutlinedIcon/>
-                    </MuiButton>
-                </Link>
-            );
-        }
         const deleteButton = user.authenticated && post.username === user.username 
                             ? (<DeletePost postId={post.postId}/>)
                             : null;
@@ -85,7 +52,7 @@ class Post extends Component {
                 avatar={
                 <Avatar alt="Profile image" src={post.userImage} className={classes.avatar} />
                 }
-                title={<Typography variant="h6" color="primary" component={Link} to={`/users/${post.username}`}>
+                title={<Typography variant="h6" color="primary" component={Link} to={`/user/${post.username}`}>
                     {post.username}
                 </Typography>}
                 action={
@@ -97,14 +64,14 @@ class Post extends Component {
                 <Typography variant="body1" color="textPrimary" component="p">{post.body}</Typography>
             </CardContent>
             <CardActions disableSpacing>
-                {likeButton}
-                <span>{post.likes?post.likes:0} likes</span>
+                <LikeButton postId={post.postId} />
+                <span className={classes.span}>{post.likes?post.likes:0} likes</span>
                 <MuiButton tip="comment">
                     <CommentIcon/>
                 </MuiButton>
-                <span>{post.commentCount?post.commentCount:0} comments</span>
+                <span className={classes.span}>{post.commentCount?post.commentCount:0} comments</span>
+                <PostDialog postId={post.postId} username={post.username}/>
             </CardActions>
-            <PostDialog postId={post.postId} username={post.username}/>
         </Card>
         );
     }

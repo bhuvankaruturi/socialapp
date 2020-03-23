@@ -1,11 +1,11 @@
 import React, { Component, Fragment } from 'react';
 import PropTypes from 'prop-types';
-import MuiButton from '../util/MuiButton';
+import MuiButton from '../../util/MuiButton';
 
 // Redux imports
 import {connect} from 'react-redux';
-import {createPost} from '../redux/actions/dataActions';
-import {clearErrors} from '../redux/actions/uiActions';
+import {createPost} from '../../redux/actions/dataActions';
+import {clearErrors} from '../../redux/actions/uiActions';
 
 // MUI imports
 import AddIcon from '@material-ui/icons/Add';
@@ -18,7 +18,7 @@ import CloseIcon from '@material-ui/icons/Close';
 import { Typography, DialogContent, TextField } from '@material-ui/core';
 
 const styles = theme => ({
-    ...theme.formStyles,
+    ...theme.spreadThis.formStyles,
     submitButton: {
         position: 'relative'
     },
@@ -28,6 +28,7 @@ const styles = theme => ({
     root: {
         margin: 0,
         padding: theme.spacing(2),
+        paddingBottom: 0
     },
     closeButton: {
         position: 'absolute',
@@ -99,8 +100,8 @@ export class NewPost extends Component {
                                 multiline
                                 rows="3"
                                 placeholder="Write something here..."
-                                error={errors ? true : false}
-                                helperText={errors?errors.body:""}
+                                error={errors.body ? true : false}
+                                helperText={errors.body?errors.body:""}
                                 className={classes.textField}
                                 onChange={this.handleChange}
                                 fullWidth

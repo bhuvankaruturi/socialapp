@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import Post from '../components/Post';
-import Profile from '../components/Profile';
+import Post from '../components/post/Post';
+import Profile from '../components/profile/Profile';
 import PropTypes from 'prop-types';
 
 // Redux imports

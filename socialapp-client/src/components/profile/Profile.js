@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import {Link} from 'react-router-dom';
 import dayjs from 'dayjs';
 import EditDetails from './EditDetails';
-import MuiButton from '../util/MuiButton';
+import MuiButton from '../../util/MuiButton';
 // Redux imports
 import {connect} from 'react-redux';
-import {uploadImage} from '../redux/actions/userActions';
+import {uploadImage} from '../../redux/actions/userActions';
 // MUI imports
 import withStyles from '@material-ui/core/styles/withStyles';
 import Button from '@material-ui/core/Button';
@@ -96,7 +96,7 @@ export class Profile extends Component {
                     </div>  
                     <hr/>
                     <div className="profile-details">
-                        <MuiLink component={Link} to={`/users/${username}`} color="primary" variant="h5">
+                        <MuiLink component={Link} to={`/user/${username}`} color="primary" variant="h5">
                             @{username}
                         </MuiLink>
                         <hr/>

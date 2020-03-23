@@ -1,10 +1,10 @@
 import React, { Component, Fragment } from 'react';
 import PropTypes from 'prop-types';
-import MuiButton from '../util/MuiButton';
+import MuiButton from '../../util/MuiButton';
 
 // Redux imports
 import {connect} from 'react-redux';
-import {deletePost} from '../redux/actions/dataActions';
+import {deletePost} from '../../redux/actions/dataActions';
 
 // MUI imports
 import withStyles from '@material-ui/core/styles/withStyles';

@@ -16,7 +16,7 @@ import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 const styles = (theme) => ({
-    ...theme.formStyles
+    ...theme.spreadThis.formStyles
 });
 
 class Login extends Component {
@@ -46,7 +46,6 @@ class Login extends Component {
     render() {
         const {classes, UI: {loading}} = this.props;
         let {UI: {errors}} = this.props;
-        if (errors == null) errors = {};
         if (this.props.user.authenticated) return (<Redirect to="/"/>);
         return (
           <Grid container className={classes.form}>

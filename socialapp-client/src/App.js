@@ -1,11 +1,14 @@
 import React, {Component} from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import NavBar from "./components/layout/NavBar";
+import isAuthenticated from "./util/isAuthenticated";
+
+// Pages
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Signout from "./pages/Signout";
-import isAuthenticated from "./util/isAuthenticated";
+import User from "./pages/User";
 
 // redux imports
 import {Provider} from "react-redux";
@@ -41,9 +44,11 @@ class App extends Component {
             <NavBar />
             <Switch>
                 <Route exact path="/" render={(props) => <Home {...props}/>} />
-                <Route exact path="/signup" render={ (props) => <Signup {...props}/> } />}
-                <Route exact path="/login" render={ (props) => <Login {...props} /> } />}
-                <Route exact path="/signout" render={ (props) => <Signout {...props}/> } />}
+                <Route exact path="/signup" render={ (props) => <Signup {...props}/> } />
+                <Route exact path="/login" render={ (props) => <Login {...props} /> } />
+                <Route exact path="/signout" render={ (props) => <Signout {...props}/> } />
+                <Route path="/user/:username" render={ (props) => <User key={props.match.params.username} {...props}/>} />
+                <Route path="/user/:username/post/:postId" render={ (props) => <User key={props.match.params.postId} {...props}/>} />
             </Switch>
           </Router>
         </Provider>

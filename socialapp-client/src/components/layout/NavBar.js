@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {Link} from 'react-router-dom';
 import MuiButton from '../../util/MuiButton';
 import NewPost from '../post/NewPost';
+import Notifications from './Notifications';
 // Redux imports
 import {connect} from 'react-redux';
 // MUI imports
@@ -10,7 +11,6 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 // MUI Icons
 import HomeIcon from '@material-ui/icons/Home';
-import Notifications from '@material-ui/icons/Notifications';
 import SignoutIcon from '@material-ui/icons/ExitToApp';
 
 export class NavBar extends Component {
@@ -26,9 +26,7 @@ export class NavBar extends Component {
                                         <HomeIcon color="action"/>
                                     </MuiButton>
                                 </Link>
-                                <MuiButton tip="Notifications">
-                                    <Notifications color="action"/>
-                                </MuiButton>
+                                <Notifications />
                                 <Link to="/signout">
                                     <MuiButton tip="Signout">
                                         <SignoutIcon color="action"/>

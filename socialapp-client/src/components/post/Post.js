@@ -42,7 +42,7 @@ class Post extends Component {
     }
     render() {
         dayjs.extend(relativeTime);
-        let {classes, post, user} = this.props;
+        let {classes, post, user, openDialog} = this.props;
         const deleteButton = user.authenticated && post.username === user.username 
                             ? (<DeletePost postId={post.postId}/>)
                             : null;
@@ -50,7 +50,7 @@ class Post extends Component {
         <Card className={classes.card}>
             <CardHeader
                 avatar={
-                <Avatar alt="Profile image" src={post.userImage} className={classes.avatar} />
+                <Avatar alt="Profile image" src={post.userImage} />
                 }
                 title={<Typography variant="h6" color="primary" component={Link} to={`/user/${post.username}`}>
                     {post.username}
@@ -70,7 +70,7 @@ class Post extends Component {
                     <CommentIcon/>
                 </MuiButton>
                 <span className={classes.span}>{post.commentCount?post.commentCount:0} comments</span>
-                <PostDialog postId={post.postId} username={post.username}/>
+                <PostDialog postId={post.postId} username={post.username} openDialog={openDialog} unsetPostId={this.props.unsetPostId}/>
             </CardActions>
         </Card>
         );
@@ -91,7 +91,9 @@ Post.propTypes = {
     post: PropTypes.object.isRequired,
     likePost: PropTypes.func.isRequired,
     unlikePost: PropTypes.func.isRequired,
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    openDialog: PropTypes.bool,
+    unsetPostId: PropTypes.func
 }
 
 export default connect(mapStateToProps, mapActionsToProps)(withStyles(styles)(Post));

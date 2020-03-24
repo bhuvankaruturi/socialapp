@@ -1,4 +1,4 @@
-import {SET_USER, SET_AUTHENTICATED, SET_UNAUTHENTICATED, LOADING_USER, LIKE_POST, UNLIKE_POST, DELETE_POST} from '../types';
+import {SET_USER, SET_AUTHENTICATED, SET_UNAUTHENTICATED, LOADING_USER, LIKE_POST, UNLIKE_POST, DELETE_POST, MARK_NOTIFICATIONS_READ} from '../types';
 
 const initialState = {
     loading: false,
@@ -28,6 +28,11 @@ export default function(state = initialState, action) {
             return {
                 ...state,
                 loading: true
+            }
+        case MARK_NOTIFICATIONS_READ:
+            return {
+                ...state,
+                notifications: state.notifications.map(notification => ({...notification, read: true}))
             }
         case LIKE_POST:
             if (action.payload !== null)

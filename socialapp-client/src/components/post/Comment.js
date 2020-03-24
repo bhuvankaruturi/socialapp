@@ -18,7 +18,10 @@ const styles = (theme) => ({
         height: theme.spacing(5),
     },
     cardContent: {
-        paddingTop: 2
+        paddingTop: 2,
+        '&:last-child': {
+            paddingBottom: 8,
+        },
     }
 })
 
@@ -26,7 +29,7 @@ export class Comment extends Component {
     render() {
         const {classes, comment} = this.props;
         return (
-            <Card raised={false} elevation={0}>
+            <Card className={classes.root} raised={false} elevation={0}>
                 <CardHeader
                     avatar={
                         <Avatar alt="profile" src={comment.userImage} className={classes.small}/>
@@ -39,7 +42,7 @@ export class Comment extends Component {
                     </Typography>}
                     subheader={dayjs(comment.createdAt).format('h:mm a, MMMM DD YYYY')}
                 />
-                <CardContent className={classes.cardContent}>
+                <CardContent classes={{root: classes.cardContent}}>
                     <Typography variant="body1" color="textSecondary" component="p">
                         {comment.body}
                     </Typography>

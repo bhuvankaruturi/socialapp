@@ -41,6 +41,10 @@ const styles = (theme) => ({
         width: theme.spacing(15),
         height: theme.spacing(15),
     },
+    dialogContent: {
+        paddingTop: 20,
+        paddingBottom: 15
+    },
     span: {
         paddingBottom: 1
     }
@@ -48,17 +52,33 @@ const styles = (theme) => ({
 
 export class PostDialog extends Component {
     state = {
-        open: false
+        open: false,
+        oldPath: ''
+    }
+
+    componentDidMount() {
+        if (this.props.openDialog) {
+            this.handleOpen();
+        }
     }
 
     handleOpen = () => {
-        this.setState({open: true});
+        let oldPath = window.location.pathname;
+        const {username, postId}  = this.props;
+        const newPath = `/user/${username}/post/${postId}`;
+        window.history.pushState(null, null, newPath);
+        if (oldPath === newPath) oldPath = `/user/${username}`;
+        this.setState({open: true, oldPath});
         this.props.getPost(this.props.postId);
     }
 
     handleClose = () => {
+        window.history.pushState(null, null, this.state.oldPath);
         this.setState({open: false});
         this.props.clearPost();
+        if (this.props.unsetPostId) {
+            this.props.unsetPostId();
+        }
     }
 
     render() {
@@ -137,7 +157,8 @@ PostDialog.propTypes = {
     username: PropTypes.string.isRequired,
     post: PropTypes.object.isRequired,
     UI: PropTypes.object.isRequired,
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    openDialog: PropTypes.bool
 }
 
 const mapStateToProps = (state) => ({

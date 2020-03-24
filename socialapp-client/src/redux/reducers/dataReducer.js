@@ -1,9 +1,11 @@
-import {SET_POSTS, LOADING_DATA, LIKE_POST, UNLIKE_POST, DELETE_POST, CREATE_POST, CREATE_COMMENT, SET_POST, UNSET_POST} from '../types';
+import {SET_POSTS, LOADING_DATA, LIKE_POST, UNLIKE_POST, DELETE_POST, 
+        CREATE_POST, CREATE_COMMENT, SET_POST, UNSET_POST, SET_PROFILE, UNSET_PROFILE} from '../types';
 
 const initialState = {
     posts: [],
     loading: false,
-    currentPost: {}
+    currentPost: {},
+    profile: {}
 }
 
 export default function (state=initialState, action) {
@@ -34,7 +36,7 @@ export default function (state=initialState, action) {
                 return {
                     ...state,
                     posts: [
-                        action.payload.data,
+                        action.payload,
                         ...state.posts
                     ],
                     loading: false
@@ -56,6 +58,16 @@ export default function (state=initialState, action) {
                 }
             } else { 
                 return state;
+            }
+        case SET_PROFILE: 
+            return {
+                ...state,
+                profile: (({posts, ...x})=>x)(action.payload)
+            }
+        case UNSET_PROFILE:
+            return {
+                ...state,
+                profile: {}
             }
         case DELETE_POST:
             if (action.payload !== null) {

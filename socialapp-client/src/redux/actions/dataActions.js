@@ -1,5 +1,6 @@
 import {SET_POSTS, LOADING_DATA, LIKE_POST, UNLIKE_POST, DELETE_POST, 
-    CREATE_POST, CREATE_COMMENT, SET_ERRORS, CLEAR_ERRORS, LOADING_UI, SET_POST, STOP_LOADING, UNSET_POST} from '../types';
+    CREATE_POST, CREATE_COMMENT, SET_ERRORS, CLEAR_ERRORS, LOADING_UI, 
+    SET_POST, STOP_LOADING, UNSET_POST, SET_PROFILE, UNSET_PROFILE} from '../types';
 import axios from 'axios';
 
 export const getPosts = () => (dispatch) => {
@@ -37,7 +38,7 @@ export const createPost = (postData) => (dispatch) => {
     axios.post('/post', postData)
         .then(response => {
             dispatch({type: CLEAR_ERRORS});
-            dispatch({type: CREATE_POST, payload: {data: response.data}});
+            dispatch({type: CREATE_POST, payload: response.data});
         })
         .catch(error => {
             console.error(error);
@@ -88,4 +89,22 @@ export const unlikePost = (username, postId) => (dispatch) => {
                 console.error(error);
                 dispatch({type: UNLIKE_POST, payload: null})
             })
+}
+
+export const getUserData = (username) => (dispatch) => {
+    dispatch({type: LOADING_DATA});
+    axios.get(`/user/${username}`)
+        .then(response => {
+            dispatch({type: SET_PROFILE, payload: response.data});
+            dispatch({type: SET_POSTS, payload: response.data.posts});
+        })
+        .catch(error => {
+            console.error(error);
+            dispatch({type: SET_POSTS, payload: []});
+            dispatch({type: UNSET_PROFILE, payload: {}})
+        })
+}
+
+export const clearUserData = (username) => (dispatch) => {
+    dispatch({type: UNSET_PROFILE});
 }

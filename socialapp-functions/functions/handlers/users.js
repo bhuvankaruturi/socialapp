@@ -179,7 +179,7 @@ exports.getUserProfile = (request, response) => {
                 userData.posts = [];
                 data.forEach(doc => {
                     let post = doc.data();
-                    post.id = doc.id;
+                    post.postId = doc.id;
                     userData.posts.push(post);
                 })
                 return response.status(200).json(userData);

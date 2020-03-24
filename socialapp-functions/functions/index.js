@@ -1,4 +1,5 @@
 const functions = require('firebase-functions');
+const cors = require('cors');
 const {getAllPosts, 
         createPost, 
         getPost, 
@@ -17,6 +18,7 @@ const {db} = require('./util/admin');
 const firebaseAuth = require('./util/firebaseAuth');
 const express = require('express');
 const app = express();
+app.use(cors());
 
 // get posts
 app.get('/posts', getAllPosts);
